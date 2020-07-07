@@ -43,9 +43,10 @@ trait KTDatatable
     public static function scopeSearchDatatable($query, $keyword)
     {
         $searchables = static::getSearchableColumns();
-        return $query->when($keyword, function ($query) use ($keyword, $searchables) {
+        $searchOperator = static::getSearchOperator();
+        return $query->when($keyword, function ($query) use ($keyword, $searchables, $searchOperator) {
             if ($searchables) {
-                $query->where(function ($query) use ($keyword, $searchables) {
+                $query->where(function ($query) use ($keyword, $searchables, $searchOperator) {
                     function getGrouppedSearchable($field)
                     {
                         $splitted = explode('.', $field);
@@ -70,23 +71,23 @@ trait KTDatatable
                         );
                     }
 
-                    function buildGrouppedSearchablesQuery($query, $keyword, $relationship, $fields)
+                    function buildGrouppedSearchablesQuery($query, $keyword, $relationship, $fields, $searchOperator)
                     {
                         if (is_array($fields)) {
-                            $query->orWhereHas($relationship, function ($query) use ($fields, $keyword) {
+                            $query->orWhereHas($relationship, function ($query) use ($fields, $keyword, $searchOperator) {
                                 $query->where(function ($query) use ($keyword, $fields) {
                                     foreach ($fields as $key => $field) {
-                                        buildGrouppedSearchablesQuery($query, $keyword, $key, $field);
+                                        buildGrouppedSearchablesQuery($query, $keyword, $key, $field, $searchOperator);
                                     }
                                 });
                             });
                         } else {
-                            $query->orWhere($fields, 'like', "%{$keyword}%");
+                            $query->orWhere($fields, $searchOperator, "%{$keyword}%");
                         }
                     }
                     
                     foreach ($grouppedSearchables as $relationship => $fields) {
-                        buildGrouppedSearchablesQuery($query, $keyword, $relationship, $fields);
+                        buildGrouppedSearchablesQuery($query, $keyword, $relationship, $fields, $searchOperator);
                     }
                 });
             }
@@ -99,6 +100,11 @@ trait KTDatatable
             return $query->orderBy($sort['field'], $sort['sort']);
         }
         return $query;
+    }
+
+    public static function getSearchOperator()
+    {
+        return 'like';
     }
 
     public static function getSearchableColumns()
