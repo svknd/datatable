@@ -5,23 +5,74 @@ namespace Ktcd\Datatable\Traits;
 trait KTDatatable
 {
 
-    public static function scopeDatatable($query, $formatter = null)
+    public static function scopeDatatable($query, $params = [], $formatter = null)
     {
-        $keywords = isset(request('query')['keywords']) ? request('query')['keywords'] : null;
-        $sortField = request()->input('sort.field', static::getDefaultSortField());
+        $fields = isset($params['fields']) ? $params['fields'] : [];
+        $searchable = isset($params['searchable']) ? $params['searchable'] : [];
+        $joins = isset($params['joins']) ? $params['joins'] : [];
+
+        /**
+         * start:select query
+         */
+        $selectFields = [];
+        $shortableFields = [];
+        foreach ($fields as $fieldOriginal => $fieldAlias) {
+            $selectFields[] = $fieldOriginal . ' as ' . $fieldAlias;
+            $shortableFields[] = $fieldAlias;
+        }
+        $query->select($selectFields);
+        /**
+         * end:select query
+         */
+
+        /**
+         * start:join query
+         */
+        foreach ($joins as $join) {
+            $on = $join['on'];
+            if ($join['type'] == 'join') {
+                $query->join($join['column'], $on[0], $on[1]);
+            }
+            elseif ($join['type'] == 'leftJoinSub') {
+                $query->leftJoinSub($join['column'], $join['alias'], function ($join) use ($on) {
+                    $join->on($on[0], $on[1], $on[2]);
+                });
+            }
+        }
+        /**
+         * end:join query
+         */
+
+        /**
+         * start:sorting query
+         */
+        $sortField = request()->input('sort.field', null);
         $sort = [
-            'field' => in_array($sortField, self::getValidColumns()) ? $sortField : null,
-            'sort' => request()->input('sort.sort', static::getDefaultSort())
+            'field' => in_array($sortField, $shortableFields) ? $sortField : null,
+            'sort' => request()->input('sort.sort', 'asc')
         ];
+        $query->orderByDatatable($sort);
+        /**
+         * end:sorting query
+         */
+
+        /**
+         * start:search query
+         */
+        $keywords = isset(request('query')['keywords']) ? request('query')['keywords'] : null;
+        $query->searchDatatable($keywords, $searchable);
+        /**
+         * end:search query
+         */
+
         $pagination = request()->get('pagination', [
             'page' => 1,
             'perpage' => 2
         ]);
         request()->merge(['page' => $pagination['page']]);
-        $paginate = $query->filterDatatable()
-            ->searchDatatable($keywords)
-            ->orderByDatatable($sort)
-            ->paginate($pagination['perpage']);
+        
+        $paginate = $query->paginate($pagination['perpage']);
+
         return [
             'meta' => [
                 'page' => (int) $paginate->currentPage(),
@@ -35,15 +86,10 @@ trait KTDatatable
         ];
     }
 
-    public static function scopeFilterDatatable($query)
+    public static function scopeSearchDatatable($query, $keyword, $params)
     {
-        return $query;
-    }
-
-    public static function scopeSearchDatatable($query, $keyword)
-    {
-        $fields = static::getSearchableColumns();
-        $operator = static::getSearchOperator();
+        $fields = $params['fields'];
+        $operator = $params['operator'];
         return $query->when($keyword, function ($query) use ($keyword, $fields, $operator) {
             if ($fields) {
                 $query->where(function ($query) use ($keyword, $fields, $operator) {
@@ -61,31 +107,6 @@ trait KTDatatable
             return $query->orderBy($sort['field'], $sort['sort']);
         }
         return $query;
-    }
-
-    public static function getSearchOperator()
-    {
-        return 'like';
-    }
-
-    public static function getSearchableColumns()
-    {
-        return [];
-    }
-
-    public static function getValidColumns()
-    {
-        return [];
-    }
-
-    public static function getDefaultSortField()
-    {
-        return null;
-    }
-
-    public static function getDefaultSort()
-    {
-        return 'asc';
     }
 
     public static function formatter($collections)
