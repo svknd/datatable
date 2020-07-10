@@ -31,17 +31,17 @@ trait KTDatatable
         foreach ($joins as $join) {
             $on = $join['on'];
             if ($join['type'] == 'join') {
-                $query->join($join['column'], function ($join) use ($on) {
+                $query->join($join['table'], function ($join) use ($on) {
                     $join->on($on[0], $on[1], $on[2]);
                 });
             }
             elseif ($join['type'] == 'leftJoin') {
-                $query->leftJoin($join['column'], function ($join) use ($on) {
+                $query->leftJoin($join['table'], function ($join) use ($on) {
                     $join->on($on[0], $on[1], $on[2]);
                 });
             }
             elseif ($join['type'] == 'leftJoinSub') {
-                $query->leftJoinSub($join['column'], $join['alias'], function ($join) use ($on) {
+                $query->leftJoinSub($join['table'], $join['alias'], function ($join) use ($on) {
                     $join->on($on[0], $on[1], $on[2]);
                 });
             }
