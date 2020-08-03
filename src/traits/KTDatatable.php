@@ -1,6 +1,6 @@
 <?php
 
-namespace Ktcd\Datatable\Traits;
+namespace Svknd\Datatable\Traits;
 
 trait KTDatatable
 {

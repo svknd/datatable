@@ -1,6 +1,6 @@
 <?php
 
-namespace Ktcd\Datatable;
+namespace Svknd\Datatable;
 
 use Illuminate\Support\ServiceProvider;
 
