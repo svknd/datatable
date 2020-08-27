@@ -75,12 +75,14 @@ trait KTDatatable
         /**
          * start:where query
          */
-        foreach (request('query') as $field) {
-            if (in_array($field, $validFields)) {
-                if (is_array(request('query')[$field])) {
-                    $query->whereIn($field, request('query')[$field]);
-                } else {
-                    $query->where($field, request('query')[$field]);
+        if (request('query') ) {
+            foreach (request('query') as $field => $value) {
+                if (in_array($field, $validFields)) {
+                    if (is_array(request('query')[$field])) {
+                        $query->whereIn($field, $value);
+                    } else {
+                        $query->where($field, $value);
+                    }
                 }
             }
         }
