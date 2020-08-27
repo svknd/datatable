@@ -15,10 +15,10 @@ trait KTDatatable
          * start:select query
          */
         $selectFields = [];
-        $shortableFields = [];
+        $validFields = [];
         foreach ($fields as $fieldOriginal => $fieldAlias) {
             $selectFields[] = $fieldOriginal . ' as ' . $fieldAlias;
-            $shortableFields[] = $fieldAlias;
+            $validFields[] = $fieldAlias;
         }
         $query->select($selectFields);
         /**
@@ -55,7 +55,7 @@ trait KTDatatable
          */
         $sortField = request()->input('sort.field', null);
         $sort = [
-            'field' => in_array($sortField, $shortableFields) ? $sortField : null,
+            'field' => in_array($sortField, $validFields) ? $sortField : null,
             'sort' => request()->input('sort.sort', 'asc')
         ];
         $query->orderByDatatable($sort);
@@ -70,6 +70,22 @@ trait KTDatatable
         $query->searchDatatable($keywords, $searchable);
         /**
          * end:search query
+         */
+
+        /**
+         * start:where query
+         */
+        foreach (request('query') as $field) {
+            if (in_array($field, $validFields)) {
+                if (is_array(request('query')[$field])) {
+                    $query->whereIn($field, request('query')[$field]);
+                } else {
+                    $query->where($field, request('query')[$field]);
+                }
+            }
+        }
+        /**
+         * end:where query
          */
 
         $pagination = request()->get('pagination', [
