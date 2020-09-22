@@ -20,7 +20,9 @@ trait KTDatatable
             $selectFields[] = $fieldOriginal . ' as ' . $fieldAlias;
             $validFields[] = $fieldAlias;
         }
-        $query->select($selectFields);
+        if ($selectFields) {
+            $query->select($selectFields);
+        }
         /**
          * end:select query
          */
@@ -107,14 +109,15 @@ trait KTDatatable
                 'sort' => $sort['sort'],
                 'field' => $sort['field'],
             ],
-            'data' => is_callable($formatter) ? $formatter($paginate->items()) : static::formatter($paginate->items())
+            'data' => is_callable($formatter) ? $formatter($paginate->items()) : 
+                (class_exists($formatter) ? new $formatter($paginate->items()) : static::formatter($paginate->items()))
         ];
     }
 
     public static function scopeSearchDatatable($query, $keyword, $params)
     {
-        $fields = $params['fields'];
-        $operator = $params['operator'];
+        $fields = isset($params['fields']) ? $params['fields'] : [];
+        $operator = isset($params['operator']) ? $params['operator'] : 'ilike';
         return $query->when($keyword, function ($query) use ($keyword, $fields, $operator) {
             if ($fields) {
                 $query->where(function ($query) use ($keyword, $fields, $operator) {
