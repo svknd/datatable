@@ -10,6 +10,7 @@ trait KTDatatable
         $fields = isset($params['fields']) ? $params['fields'] : [];
         $searchable = isset($params['searchable']) ? $params['searchable'] : [];
         $joins = isset($params['joins']) ? $params['joins'] : [];
+        $wheres = isset($params['wheres']) ? $params['wheres'] : [];
 
         /**
          * start:select query
@@ -91,6 +92,12 @@ trait KTDatatable
         /**
          * end:where query
          */
+
+        // custom where condition
+        foreach ($wheres as $where) {
+            $condition = $where['condition'];
+            $query->{$where['type']}($condition[0], $condition[1]);
+        }
 
         $pagination = request()->get('pagination', [
             'page' => 1,
