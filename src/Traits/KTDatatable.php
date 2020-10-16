@@ -31,7 +31,7 @@ trait KTDatatable
          */
         foreach ($joins as $join) {
             $on = $join['on'];
-            if (isset($join['multi'])) {
+            if (count($on) != count($on, COUNT_RECURSIVE)) {
                 /** for multiple join condition */
                 $query->{$join['type']}($join['table'], function ($join) use ($on) {
                     foreach ($on as $value) {
