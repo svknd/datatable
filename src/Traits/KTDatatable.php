@@ -31,20 +31,27 @@ trait KTDatatable
          */
         foreach ($joins as $join) {
             $on = $join['on'];
-            if ($join['type'] == 'join') {
-                $query->join($join['table'], function ($join) use ($on) {
-                    $join->on($on[0], $on[1], $on[2]);
+            if (isset($join['multi'])) {
+                /** for multiple join condition */
+                $query->{$join['type']}($join['table'], function ($join) use ($on) {
+                    foreach ($on as $value) {
+                        $join->on($value[0], $value[1], $value[2]);
+                    }
                 });
-            }
-            elseif ($join['type'] == 'leftJoin') {
-                $query->leftJoin($join['table'], function ($join) use ($on) {
-                    $join->on($on[0], $on[1], $on[2]);
-                });
-            }
-            elseif ($join['type'] == 'leftJoinSub') {
-                $query->leftJoinSub($join['table'], $join['alias'], function ($join) use ($on) {
-                    $join->on($on[0], $on[1], $on[2]);
-                });
+            } else {
+                if ($join['type'] == 'join') {
+                    $query->join($join['table'], function ($join) use ($on) {
+                        $join->on($on[0], $on[1], $on[2]);
+                    });
+                } elseif ($join['type'] == 'leftJoin') {
+                    $query->leftJoin($join['table'], function ($join) use ($on) {
+                        $join->on($on[0], $on[1], $on[2]);
+                    });
+                } elseif ($join['type'] == 'leftJoinSub') {
+                    $query->leftJoinSub($join['table'], $join['alias'], function ($join) use ($on) {
+                        $join->on($on[0], $on[1], $on[2]);
+                    });
+                }
             }
         }
         /**
@@ -76,7 +83,7 @@ trait KTDatatable
         /**
          * start:where query
          */
-        if (request('query') ) {
+        if (request('query')) {
             foreach (request('query') as $field => $value) {
                 if (in_array($field, $validFields)) {
                     if (is_array(request('query')[$field])) {
@@ -102,7 +109,7 @@ trait KTDatatable
             'perpage' => 2
         ]);
         request()->merge(['page' => $pagination['page']]);
-        
+
         $paginate = $query->paginate($pagination['perpage']);
 
         return [
