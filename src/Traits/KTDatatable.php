@@ -11,6 +11,7 @@ trait KTDatatable
         $searchable = isset($params['searchable']) ? $params['searchable'] : [];
         $joins = isset($params['joins']) ? $params['joins'] : [];
         $wheres = isset($params['wheres']) ? $params['wheres'] : [];
+        $groups = isset($params['groups']) ? $params['groups'] : [];
 
         /**
          * start:select query
@@ -104,6 +105,11 @@ trait KTDatatable
         foreach ($wheres as $where) {
             $condition = $where['condition'];
             $query->{$where['type']}($condition[0], $condition[1]);
+        }
+
+        // start groupBy query
+        if (!empty($groups)) {
+            $query->groupBy($groups);
         }
 
         $pagination = request()->get('pagination', [
