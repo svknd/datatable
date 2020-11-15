@@ -84,17 +84,7 @@ trait KTDatatable
         /**
          * start:where query
          */
-        if (request('query')) {
-            foreach (request('query') as $field => $value) {
-                if (in_array($field, $validFields)) {
-                    if (is_array(request('query')[$field])) {
-                        $query->whereIn($field, $value);
-                    } else {
-                        $query->where($field, $value);
-                    }
-                }
-            }
-        }
+        $query->filterDatatable();
         /**
          * end:where query
          */
@@ -151,6 +141,11 @@ trait KTDatatable
         if ($sort['field']) {
             return $query->orderBy($sort['field'], $sort['sort']);
         }
+        return $query;
+    }
+
+    public static function scopeFilterDatatable($query)
+    {
         return $query;
     }
 
