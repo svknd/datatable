@@ -12,6 +12,7 @@ trait KTDatatable
         $joins = isset($params['joins']) ? $params['joins'] : [];
         $wheres = isset($params['wheres']) ? $params['wheres'] : [];
         $groups = isset($params['groups']) ? $params['groups'] : [];
+        $defaultSort = isset($params['orders']) ? $params['orders'] : [];
 
         /**
          * start:select query
@@ -66,9 +67,16 @@ trait KTDatatable
          */
         $sortField = request()->input('sort.field', null);
         $sort = [
-            'field' => in_array($sortField, $validFields) ? $sortField : null,
-            'sort' => request()->input('sort.sort', 'asc')
+            [
+                'field' => in_array($sortField, $validFields) ? $sortField : null,
+                'sort' => request()->input('sort.sort', 'asc')
+            ]
         ];
+        
+        if(!empty($defaultSort)){
+            $sort = array_merge($sort, $defaultSort);
+        }
+        
         $query->orderByDatatable($sort);
         /**
          * end:sorting query
@@ -116,8 +124,8 @@ trait KTDatatable
                 'pages' => (int) ceil($paginate->total() / $paginate->perPage()),
                 'perpage' => (int) $paginate->perPage(),
                 'total' => (int) $paginate->total(),
-                'sort' => $sort['sort'],
-                'field' => $sort['field'],
+                'sort' => $sort[0]['sort'],
+                'field' => $sort[0]['field'],
             ],
             'data' => is_callable($formatter) ? $formatter($paginate->items()) : 
                 (class_exists($formatter) ? new $formatter($paginate->items()) : static::formatter($paginate->items()))
@@ -139,10 +147,12 @@ trait KTDatatable
         });
     }
 
-    public static function scopeOrderByDatatable($query, $sort)
+    public static function scopeOrderByDatatable($query, $sorts)
     {
-        if ($sort['field']) {
-            return $query->orderBy($sort['field'], $sort['sort']);
+        foreach($sorts as $key => $sort){
+            if ($sort['field']) {
+                 $query->orderBy($sort['field'], $sort['sort']);
+            }
         }
         return $query;
     }
