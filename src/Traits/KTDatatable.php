@@ -94,7 +94,7 @@ trait KTDatatable
         /**
          * start:where query
          */
-        $query->filterDatatable();
+        $query->filterDatatable($validFields);
         /**
          * end:where query
          */
@@ -157,9 +157,25 @@ trait KTDatatable
         return $query;
     }
 
-    public static function scopeFilterDatatable($query)
+    public static function scopeFilterDatatable($query, $validFields)
     {
-        return $query;
+        /**
+         * start:where query
+         */
+        if (request('query') ) {
+            foreach (request('query') as $field => $value) {
+                if (in_array($field, $validFields)) {
+                    if (is_array(request('query')[$field])) {
+                        $query->whereIn($field, $value);
+                    } else {
+                        $query->where($field, $value);
+                    }
+                }
+            }
+        }
+        /**
+         * end:where query
+         */
     }
 
     public static function formatter($collections)
