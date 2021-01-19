@@ -169,7 +169,11 @@ trait KTDatatable
                     if (is_array(request('query')[$field])) {
                         $query->whereIn(array_search($field, $fields), $value);
                     } else {
-                        $query->where(array_search($field, $fields), $value);
+                        if ($value == 'is_null') {
+                            $query->whereNull(array_search($field, $fields));
+                        } else {
+                            $query->where(array_search($field, $fields), $value);
+                        }
                     }
                 }
             }
