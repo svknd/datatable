@@ -112,7 +112,7 @@ trait KTDatatable
 
         $pagination = request()->get('pagination', [
             'page' => 1,
-            'perpage' => 2
+            'perpage' => 10
         ]);
         request()->merge(['page' => $pagination['page']]);
 
