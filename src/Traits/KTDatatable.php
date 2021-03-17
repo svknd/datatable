@@ -159,7 +159,7 @@ trait KTDatatable
 
     public static function scopeFilterDatatable($query, $fields)
     {
-       
+
         /**
          * start:where query
          */
@@ -169,7 +169,12 @@ trait KTDatatable
                     if (is_array(request('query')[$field])) {
                         $query->whereIn(array_search($field, $fields), $value);
                     } else {
-                        if ($value == 'is_null') {
+                        if($value[0] == '%' || $value[strlen($value) - 1] == '%') {
+                            $operator = isset($params['operator']) ? $params['operator'] : 'ilike';
+                            $isField = array_search($field, $fields);
+                            $query->where($isField, $operator, $value);
+                        }
+                        else if ($value == 'is_null') {
                             $query->whereNull(array_search($field, $fields));
                         } else {
                             $query->where(array_search($field, $fields), $value);
