@@ -172,6 +172,8 @@ trait KTDatatable
                         if($value[0] == '%' || $value[strlen($value) - 1] == '%') {
                             $operator = isset($params['operator']) ? $params['operator'] : 'ilike';
                             $isField = array_search($field, $fields);
+                            $value = str_replace('%25', '%', urlencode($value));
+
                             $query->where($isField, $operator, $value);
                         }
                         else if ($value == 'is_null') {
