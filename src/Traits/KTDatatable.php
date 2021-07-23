@@ -173,6 +173,7 @@ trait KTDatatable
                             $operator = isset($params['operator']) ? $params['operator'] : 'ilike';
                             $isField = array_search($field, $fields);
                             $value = str_replace('%25', '%', urlencode($value));
+                            $value = str_replace('+', ' ', $value);
 
                             $query->where($isField, $operator, $value);
                         }
